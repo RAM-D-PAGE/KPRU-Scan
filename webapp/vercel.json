@@ -11,6 +11,10 @@
         {
             "source": "/static/(.*)",
             "destination": "/static/$1"
+        },
+        {
+            "source": "/(.*).(css|js|png|jpg|ico)",
+            "destination": "/static/$1.$2"
         }
     ]
 }
