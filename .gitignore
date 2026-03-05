@@ -1,23 +1,15 @@
-# Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Environments
-.env
-.venv
+*.py[cod]
+*$py.class
 env/
 venv/
-ENV/
-
-# Project Specific
-data/outputs/
-data/samples/ocr_input_*.jpg
-reports/debug_logs/
-reports/*.txt
-reports/*.csv
-
-# IDE
+.env
+.venv
 .vscode/
 .idea/
+*.log
+.DS_Store
+*.png
+*.jpg
+*.jpeg
+!webapp/static/favicon.png
