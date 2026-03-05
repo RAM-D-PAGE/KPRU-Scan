@@ -33,9 +33,11 @@ app.add_middleware(
 static_dir = os.path.join(os.path.dirname(__file__), "..", "static")
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
+from fastapi.responses import JSONResponse, FileResponse
+...
 @app.get("/")
 async def read_index():
-    return JSONResponse({"status": "healthy", "service": "KPRU-Scan API"})
+    return FileResponse(os.path.join(static_dir, "index.html"))
 
 @app.post("/api/scan")
 async def scan_image(file: UploadFile = File(...), api_key: str = Form(None)):
