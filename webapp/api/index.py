@@ -1,5 +1,5 @@
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import cv2
@@ -33,8 +33,7 @@ app.add_middleware(
 static_dir = os.path.join(os.path.dirname(__file__), "..", "static")
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
-from fastapi.responses import JSONResponse, FileResponse
-...
+
 @app.get("/")
 async def read_index():
     return FileResponse(os.path.join(static_dir, "index.html"))
