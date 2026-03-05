@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Turnkey OCR System | 🛡️🦾</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="glass-container">
+        <header>
+            <h1 class="glow-text">🛡️ Turnkey OCR</h1>
+            <p class="subtitle">ระบบอ่านรหัสครุภัณฑ์อัจฉริยะ (Vercel Edition)</p>
+        </header>
+
+        <main>
+            <!-- Camera / Upload Section -->
+            <section class="card upload-section">
+                <div id="camera-container" class="preview-box">
+                    <video id="webcam" autoplay playsinline></video>
+                    <canvas id="canvas" style="display:none;"></canvas>
+                    <img id="static-preview" style="display:none;">
+                    <div id="placeholder" class="placeholder-text">คลิก "เปิดกล้อง" เพื่อเริ่มใช้งาน</div>
+                </div>
+
+                <div class="controls">
+                    <button id="btn-camera" class="btn primary">📸 เปิดกล้อง</button>
+                    <button id="btn-snap" class="btn success" style="display:none;">🔍 สแกนรหัส</button>
+                    <input type="file" id="file-input" accept="image/*" style="display:none;">
+                    <button id="btn-upload" class="btn secondary">📁 เลือกรูปจากเครื่อง</button>
+                </div>
+                
+                <div class="api-key-box">
+                    <input type="password" id="api-key" placeholder="ใส่ Gemini API Key ของคุณ">
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section id="results-section" class="card result-card" style="display:none;">
+                <div class="status-badge" id="status-badge">กำลังประมวลผล...</div>
+                
+                <div class="result-group">
+                    <label>รหัสครุภัณฑ์ที่อ่านได้:</label>
+                    <div id="final-text" class="code-display">-</div>
+                </div>
+
+                <div class="preview-group">
+                    <label>ภาพที่ระบบตรวจพบ (ROI Detection):</label>
+                    <img id="roi-preview" src="" alt="ROI Preview">
+                </div>
+
+                <div class="footer-actions">
+                    <button id="btn-copy" class="btn action">📋 คัดลอกรหัส</button>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2026 Developed for KPRU Asset Management</p>
+        </footer>
+    </div>
+    
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="overlay" style="display:none;">
+        <div class="loader"></div>
+        <p>กำลังวิเคราะห์ภาพด้วย AI...</p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
