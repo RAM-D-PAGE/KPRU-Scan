@@ -72,7 +72,16 @@ async def scan_image(file: UploadFile = File(...), api_key: str = Form(None)):
         if api_key and api_key.strip():
             try:
                 genai.configure(api_key=api_key)
-                model = genai.GenerativeModel('gemini-1.5-flash')
+                # Auto-discover the best available model
+                available_models = [m.name for m in genai.list_models() if "generateContent" in m.supported_generation_methods]
+                target_model = 'models/gemini-1.5-flash'
+                
+                # If flash isn't available, pick the first one with vision/content support
+                if target_model not in available_models:
+                    flash_models = [m for m in available_models if 'flash' in m]
+                    target_model = flash_models[0] if flash_models else available_models[0]
+                
+                model = genai.GenerativeModel(target_model)
                 
                 # Use PIL for Gemini
                 pil_img = Image.open(io.BytesIO(contents))

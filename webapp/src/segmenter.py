@@ -68,19 +68,23 @@ class CharacterSegmenter:
             h_avg, h_std = np.mean(heights), np.std(heights)
             a_avg = np.mean(areas)
             
-            # --- VENT REJECTION (STRICT) ---
-            # 1. Density Check
+            # --- VENT REJECTION (ENHANCED) ---
+            penalty = 1.0
+            
+            # 1. Height Check: Vents are usually extremely short compared to KPRU text
+            # Typical KPRU handwriting on a 1200px width image is 40-70px tall. Vents are < 15px.
+            if h_avg < 20: penalty *= 0.01 
+            
+            # 2. Density Check: Vents are super packed (thin slits)
             line_w = (sorted_g[-1]['x'] + sorted_g[-1]['box'][2]) - sorted_g[0]['x']
             density = length / float(line_w) if line_w > 0 else 0
-            crowding_penalty = 1.0
-            if density > 0.08: crowding_penalty = 0.01 
+            if density > 0.09: penalty *= 0.02 
             
-            # 2. Size Uniformity (Vents are identical, handwriting is not)
-            # Handwriting typically has > 15-20% variation in width/height
-            if w_avg > 0 and (w_std / w_avg) < 0.15: crowding_penalty *= 0.05
-            if h_avg > 0 and (h_std / h_avg) < 0.10: crowding_penalty *= 0.05
+            # 3. Machine Uniformity: Vents have identical widths/heights
+            if w_avg > 0 and (w_std / w_avg) < 0.12: penalty *= 0.1
+            if h_avg > 0 and (h_std / h_avg) < 0.08: penalty *= 0.1
             
-            # 3. Gap Stability (Vents have perfectly identical gaps)
+            # 4. Gap Stability: Vents have identical robotic gaps
             if length > 8:
                 gaps = []
                 for i in range(len(sorted_g)-1):
@@ -89,17 +93,17 @@ class CharacterSegmenter:
                 if gaps:
                     gap_avg = np.mean(gaps)
                     gap_std = np.std(gaps)
-                    # If gaps are too perfect, it's a machine pattern
-                    if gap_avg > 0 and (gap_std / gap_avg) < 0.20:
-                        crowding_penalty *= 0.01
+                    if gap_avg > 0 and (gap_std / gap_avg) < 0.18:
+                        penalty *= 0.01
 
-            # 4. Strength Signals
-            area_score = a_avg / 40.0 
+            # 5. Strength Signals
+            # Big bold handwriting has a much higher area than thin vents.
+            area_score = (a_avg / 30.0) ** 1.5 
             y_pos = sum([b['y_mid'] for b in group]) / len(group)
-            pos_weight = 1.0 + (y_pos / img_h) # Prefer lower items
-            pattern_bonus = 2.0 if 12 <= length <= 25 else 0.5
+            pos_weight = 1.0 + (y_pos / img_h) 
+            pattern_bonus = 3.0 if 15 <= length <= 25 else 1.0
             
-            return length * area_score * pos_weight * pattern_bonus * crowding_penalty
+            return length * area_score * pos_weight * pattern_bonus * penalty
 
         scored_lines = []
         for g in line_groups:
