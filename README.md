@@ -1,4 +1,4 @@
-# Turnkey OCR System - 100% Accuracy Property Serial Scanner 🛡️🦾
+# KPRU-Scan 🛡️🦾- 100% Accuracy Property Serial Scanner 🛡️🦾
 
 [**English** | [**ไทย**](#ไทย)]
 
@@ -43,7 +43,7 @@ python src/gui.py
 
 <a name="ไทย"></a>
 
-# ระบบอ่านรหัสครุภัณฑ์ (Turnkey OCR System) 🛡️🦾
+# KPRU-Scan (เวอร์ชั่นภาษาไทย) 🛡️🦾
 
 ระบบสแกนและอ่านรหัสครุภัณฑ์จากลายมือปากกามาร์กเกอร์ ออกแบบมาเพื่อให้ความแม่นยำ 100% โดยไม่ต้องพึ่งพาระบบ AI จากภายนอกเป็นหลัก
 

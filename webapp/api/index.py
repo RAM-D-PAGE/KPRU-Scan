@@ -25,7 +25,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
 async def read_index():
-    return JSONResponse({"status": "healthy", "service": "Turnkey OCR API"})
+    return JSONResponse({"status": "healthy", "service": "KPRU-Scan API"})
 
 @app.post("/api/scan")
 async def scan_image(file: UploadFile = File(...), api_key: str = Form(None)):

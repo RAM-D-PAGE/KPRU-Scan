@@ -15,7 +15,7 @@ from main import process_image
 class OCRApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("ระบบอ่านรหัสครุภัณฑ์ (Turnkey OCR System)")
+        self.root.title("KPRU-Scan | ระบบอ่านรหัสครุภัณฑ์")
         self.root.geometry("1000x800")
         self.root.config(bg="#f0f0f0")
         
