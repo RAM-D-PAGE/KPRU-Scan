@@ -2,46 +2,66 @@ import re
 
 class PatternValidator:
     def __init__(self):
+        # Pattern: KPRU68-15.00-0089/034
         self.pattern = r"^KPRU\d{2}-\d{2}\.\d{2}-\d{4}/\d{3}$"
         
     def auto_correct(self, raw_text):
+        # 1. Standardize and Clean
         raw_text = raw_text.upper().replace(' ', '').strip()
+        
+        # Remove noisy prefixes
         if raw_text.startswith("NS"):
             if "-" in raw_text:
                 raw_text = raw_text[raw_text.find("-")+1:]
             else:
                 raw_text = raw_text[2:]
         
+        # Replace common separator misreads
         text = raw_text.replace(':', '-').replace(';', '-').replace(',', '.')
+        
+        # 2. Segmenting by Anchors
         slash_idx = text.rfind('/')
         s5_raw = text[slash_idx+1:] if slash_idx != -1 else ""
         main_part = text[:slash_idx] if slash_idx != -1 else text
         
+        # Split main part by - or .
         parts = re.split(r'[-\.]', main_part)
         parts = [p for p in parts if p]
         
+        # Default empty parts
+        s2 = "00"
+        s3 = "00"
+        s4 = "0000"
+        s5 = self._extract_digits(s5_raw, 3)
+        
+        # Segment 1: KPRUxx
         s1_raw = parts[0] if len(parts) >= 1 else ""
         s1_digits = self._extract_digits(s1_raw, 2, from_right=True)
+        
+        # Segment 2, 3, 4, 5
         s2 = self._extract_digits(parts[1], 2) if len(parts) >= 2 else "00"
         s3 = self._extract_digits(parts[2], 2) if len(parts) >= 3 else "00"
         s4 = self._extract_digits(parts[3], 4) if len(parts) >= 4 else "0000"
-        s5 = self._extract_digits(s5_raw, 3)
             
+        # Contextual Correction: Year "68" is common
         if s1_digits == "65" and ("8" in s1_raw or "S" in s1_raw or "B" in s1_raw):
             s1_digits = "68"
 
         return f"KPRU{s1_digits}-{s2}.{s3}-{s4}/{s5}"
 
     def _extract_digits(self, segment, n, from_right=False):
+        """Extract up to n digits from a segment using mapping."""
         digits = []
         for char in segment:
             d = self._to_digit(char)
             if d.isdigit():
                 digits.append(d)
+        
         if from_right:
             res = "".join(digits[-n:]) if digits else ""
         else:
             res = "".join(digits[:n]) if digits else ""
+            
         return res.zfill(n)
 
     def _to_digit(self, char):
