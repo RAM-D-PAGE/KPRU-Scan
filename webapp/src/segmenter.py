@@ -65,28 +65,38 @@ class CharacterSegmenter:
             areas = [b['area'] for b in sorted_g]
             
             w_avg, w_std = np.mean(widths), np.std(widths)
-            h_avg = np.mean(heights)
+            h_avg, h_std = np.mean(heights), np.std(heights)
             a_avg = np.mean(areas)
             
-            # --- VENT REJECTION ---
-            # Crowding Penalty: Vents are many blobs packed in a tight width
+            # --- VENT REJECTION (STRICT) ---
+            # 1. Density Check
             line_w = (sorted_g[-1]['x'] + sorted_g[-1]['box'][2]) - sorted_g[0]['x']
             density = length / float(line_w) if line_w > 0 else 0
-            # If density is too high (> 0.08 blobs per pixel), it's likely a vent
             crowding_penalty = 1.0
             if density > 0.08: crowding_penalty = 0.01 
             
-            # Uniformity Rejection: Vents are perfectly same width
-            if w_avg > 0 and (w_std / w_avg) < 0.12: return 0
+            # 2. Size Uniformity (Vents are identical, handwriting is not)
+            # Handwriting typically has > 15-20% variation in width/height
+            if w_avg > 0 and (w_std / w_avg) < 0.15: crowding_penalty *= 0.05
+            if h_avg > 0 and (h_std / h_avg) < 0.10: crowding_penalty *= 0.05
             
-            # Area is the strongest signal. Vents are slivers, KPRU is big.
-            area_score = a_avg / 50.0 # Make it more sensitive
-            
-            # Position Weight (Lower half preferred)
+            # 3. Gap Stability (Vents have perfectly identical gaps)
+            if length > 8:
+                gaps = []
+                for i in range(len(sorted_g)-1):
+                    gap = sorted_g[i+1]['x'] - (sorted_g[i]['x'] + sorted_g[i]['box'][2])
+                    gaps.append(max(0, gap))
+                if gaps:
+                    gap_avg = np.mean(gaps)
+                    gap_std = np.std(gaps)
+                    # If gaps are too perfect, it's a machine pattern
+                    if gap_avg > 0 and (gap_std / gap_avg) < 0.20:
+                        crowding_penalty *= 0.01
+
+            # 4. Strength Signals
+            area_score = a_avg / 40.0 
             y_pos = sum([b['y_mid'] for b in group]) / len(group)
-            pos_weight = 1.0 + (y_pos / img_h) 
-            
-            # Pattern Length Bonus
+            pos_weight = 1.0 + (y_pos / img_h) # Prefer lower items
             pattern_bonus = 2.0 if 12 <= length <= 25 else 0.5
             
             return length * area_score * pos_weight * pattern_bonus * crowding_penalty
