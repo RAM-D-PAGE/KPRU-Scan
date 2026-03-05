@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Project Specific
+data/outputs/
+data/samples/ocr_input_*.jpg
+reports/debug_logs/
+reports/*.txt
+reports/*.csv
+
+# IDE
+.vscode/
+.idea/
