@@ -1,6 +1,7 @@
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 import cv2
 import numpy as np
 import os
@@ -20,8 +21,17 @@ from validator import PatternValidator
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Mount static files (Frontend)
-app.mount("/static", StaticFiles(directory="static"), name="static")
+static_dir = os.path.join(os.path.dirname(__file__), "..", "static")
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 @app.get("/")
 async def read_index():
@@ -58,7 +68,7 @@ async def scan_image(file: UploadFile = File(...), api_key: str = Form(None)):
         boxed_base64 = base64.b64encode(buffer).decode('utf-8')
 
         # 3. Recognition via Gemini AI (Since Tesseract is hard on Vercel)
-        raw_text = "N/A"
+        raw_text = "Preview Only (No API Key)"
         if api_key and api_key.strip():
             try:
                 genai.configure(api_key=api_key)
@@ -78,15 +88,14 @@ async def scan_image(file: UploadFile = File(...), api_key: str = Form(None)):
                     "status": "error", 
                     "message": f"API Error: {str(e)}"
                 })
-        else:
-            return JSONResponse({
-                "status": "error",
-                "message": "กรุณาใส่ API Key สำหรับการประมวลผลบนคลาวด์"
-            })
-
+        
         # 4. Final Validation & Auto-correction
-        final_text = validator.auto_correct(raw_text)
-        is_valid = validator.is_valid(final_text)
+        if raw_text.startswith("Preview"):
+            final_text = "ไม่ได้ใส่ API Key"
+            is_valid = False
+        else:
+            final_text = validator.auto_correct(raw_text)
+            is_valid = validator.is_valid(final_text)
 
         return {
             "status": "success",

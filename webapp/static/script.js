@@ -56,10 +56,6 @@ fileInput.addEventListener('change', (e) => {
 // 3. Scan & API Execution
 btnSnap.addEventListener('click', async () => {
     const apiKey = apiKeyInput.value.trim();
-    if (!apiKey) {
-        alert("กรุณาใส่ Gemini API Key ก่อนสแกนครับ");
-        return;
-    }
 
     loadingOverlay.style.display = 'flex';
     resultsSection.style.display = 'none';
@@ -82,7 +78,11 @@ btnSnap.addEventListener('click', async () => {
     formData.append('api_key', apiKey);
 
     try {
-        const response = await fetch('/api/scan', {
+        const apiUrl = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost'
+            ? 'http://127.0.0.1:8000/api/scan'
+            : '/api/scan';
+
+        const response = await fetch(apiUrl, {
             method: 'POST',
             body: formData
         });
