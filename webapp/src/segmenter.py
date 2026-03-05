@@ -48,15 +48,36 @@ class CharacterSegmenter:
             length = len(group)
             if length < 5: return 0
             sorted_g = sorted(group, key=lambda b: b['x'])
+            
+            # 1. Basic Geometry
             line_w = (sorted_g[-1]['x'] + sorted_g[-1]['box'][2]) - sorted_g[0]['x']
             density = length / float(line_w) if line_w > 0 else 0
+            
+            # 2. Penalty for extreme crowding (Monitor vents are often very tight)
             crowding_penalty = 1.0
-            if density > 0.08: crowding_penalty = 0.01 
+            if density > 0.08: crowding_penalty = 0.05 
             
+            # 3. Size Uniformity Check (Real handwriting has variation)
             widths = [b['w'] for b in sorted_g]
+            heights = [b['box'][3] for b in sorted_g]
             w_avg, w_std = np.mean(widths), np.std(widths)
-            if w_avg > 0 and (w_std / w_avg) < 0.12: return 0
+            h_avg, h_std = np.mean(heights), np.std(heights)
             
+            # If everything is EXACTLY the same size (like vents), it's probably NOT handwriting
+            if w_avg > 0 and (w_std / w_avg) < 0.15: crowding_penalty *= 0.1
+            if h_avg > 0 and (h_std / h_avg) < 0.10: crowding_penalty *= 0.1
+            
+            # 4. Gap Stability (Monitor vents have perfectly identical gaps)
+            if length > 8:
+                gaps = []
+                for i in range(len(sorted_g)-1):
+                    gap = sorted_g[i+1]['x'] - (sorted_g[i]['x'] + sorted_g[i]['box'][2])
+                    gaps.append(max(0, gap))
+                gap_avg = np.mean(gaps) if gaps else 0
+                gap_std = np.std(gaps) if gaps else 0
+                if gap_avg > 0 and (gap_std / gap_avg) < 0.20:
+                    crowding_penalty *= 0.05 # Strong rejection of uniform patterns
+
             a_avg = np.mean([b['area'] for b in sorted_g])
             area_score = a_avg / 50.0
             y_pos = sum([b['y_mid'] for b in group]) / len(group)
